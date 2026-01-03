@@ -1,0 +1,896 @@
+\documentclass[handout]{bibi}
+
+% These packages are used in this document but not required by the class:
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{mathtools}
+\usepackage{pgfplots}
+\usepackage{polyglossia}
+
+% Settings:
+\usetikzlibrary{patterns}
+\setmainlanguage{english}
+
+% Colors for the intro:
+\definecolor{c5}{HTML}{390099}
+\definecolor{c4}{HTML}{9e0059}
+\definecolor{c3}{HTML}{ff0054}
+\definecolor{c2}{HTML}{ff5400}
+\definecolor{c1}{HTML}{ffbd00}
+
+% Colors for elliptic curves:
+\definecolor{grad1}{HTML}{00b4d8}
+\definecolor{grad2}{HTML}{00b4d8}
+\definecolor{grad3}{HTML}{00b4d8}
+
+% Colors for the comparison plot:
+\definecolor{comparegreen} {HTML}{ffa69e}
+\definecolor{compareblue}  {HTML}{faf3dd}
+\definecolor{compareyellow}{HTML}{b8f2e6}
+\definecolor{comparered}   {HTML}{aed9e0}
+% As well as macros for it:
+\newcommand{\FMFF}{\texttt{F-MFF}}
+\newcommand{\FMKU}{\texttt{F-MKU}}
+\newcommand{\FCSA}{\texttt{F-CSA}}
+\DeclareMathOperator{\SM}{SM}
+
+% \pause and \vfill at the same time:
+\newcommand{\vpause}{\vfill\pause}
+
+% Macros for displaying function definitions:
+\newcommand{\Function}[5]{
+  \[
+    \begin{array}{rrcl}
+    #1: & #2 & \to     & #3 \\
+        & #4 & \mapsto & #5
+    \end{array}
+  \]
+}
+\newcommand{\FunctionNoname}[4]{
+  \[
+    \begin{array}{rcl}
+      #1 & \to     & #2 \\
+      #3 & \mapsto & #4
+    \end{array}
+  \]
+}
+
+% A command for displaying the table of contents during the talk:
+\newcommand{\frametoc}{
+  \begin{frame}
+    \centering
+    \Large
+    \tableofcontents
+  \end{frame}
+}
+
+% Math macros:
+\newcommand{\Ktau}{{K\{\tau\}}}
+\newcommand{\M}{{\mathbb M}}
+\newcommand{\Fq}{{\mathbb{F}_q}}
+\newcommand{\Kbar}{{\overline{K}}}
+\newcommand{\NN}{\mathbb{Z}_{\geqslant 0}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+% Operators
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\leq}{\leqslant}
+
+% Title page
+
+\title{From elliptic curves to Drinfeld modules}
+
+\date{
+  INRIA Grace seminar \\
+  \footnotesize 
+  December 2nd 2025
+  \normalsize
+}
+
+\author{Antoine Leudière}
+
+\institute{University of Calgary}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Today}
+
+  What are \textcolor{c1}{\textbf{Drinfeld modules}}?
+  How do they compare to \textcolor{c2}{\textbf{elliptic curves}}?
+
+  \vspace{1.5em}
+
+  How \textcolor{c3}{\textbf{effective}} are Drinfeld modules?
+  \textcolor{c4}{\textbf{Counting points}} using Anderson
+  motives.
+
+  \vspace{1.5em}
+
+  Potential \textcolor{c5}{\textbf{applications}}.
+
+  \vspace{2em}
+
+  \begin{flushright}
+
+    Joint work with Xavier Caruso.
+
+    \emph{Algorithms for computing norms and characteristic polynomials on
+    general Drinfeld modules}. Mathematics of Computation. 2026.
+
+  \end{flushright}
+
+\end{frame}
+
+\frametoc
+
+\section{The rules of point counting}
+
+\begin{frame}{What is point counting?}
+
+  \begin{block}{Naively}
+
+    Counting solutions to an equation.
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Generally a hard problem}
+
+  \begin{itemize}
+
+    \item Algebraic varieties on a finite field.
+    \item Matiyasevich's theorem (1970): no algorithm can tell if any given
+      Diophantine equation has integer solutions.
+
+  \end{itemize}
+
+  \end{block}
+
+  \vpause
+
+  Consider geometric objects with more structure: \emph{elliptic curves}.
+
+\end{frame}
+
+\begin{frame}{Elliptic curves}
+  \begin{columns}
+    \begin{column}{0.4\textwidth}
+      \begin{tikzpicture}[scale=0.7]
+
+        \begin{axis}[
+            axis lines=middle,
+            axis line style={gray},
+            xtick=\empty,
+            ytick=\empty,
+            xlabel style={anchor=north, gray, font=\footnotesize},
+            ylabel style={anchor=east,  gray, font=\footnotesize},
+            xmin=-3,
+            xmax=+4,
+            ymin=-4,
+            ymax=+4,
+            scale only axis,
+            axis equal,
+        ]
+
+        % Plot the elliptic curve
+        \addplot[on layer=main, domain=-2.38297:3, smooth, line width=0.8pt, samples=100] {sqrt(x^3-4*x+4)};
+        \addplot[on layer=main, domain=-2.38297:3, smooth, line width=0.8pt, samples=100] {-sqrt(x^3-4*x+4)};
+  
+        % Add points
+        \addplot[only marks, mark=*, mark options={draw=grad1, fill=grad2}] coordinates {(1,1)};
+        \addplot[only marks, mark=*, mark options={draw=grad2, fill=grad2}] coordinates {(-1.75,-2.375)};
+        \addplot[only marks, mark=*, mark options={draw=grad3, fill=grad2}] coordinates {(2.2562,-2.5417)};
+  
+        % Label the points
+        \node[above, font=\footnotesize] at (axis cs:1,1)               {$P$};
+        \node[below, font=\footnotesize] at (axis cs:-1.75,-2.375)      {$Q$};
+        \node[below, font=\footnotesize] at (axis cs:2.2562,-2.5417)    {$P+Q$};
+  
+        \addplot[domain=-4:4, line width=0.6pt, red, dotted] {{1.2273*x - 0.2273}};
+        \addplot[domain=-4:4, line width=0.6pt, red, dotted] coordinates {(2.2562,4) (2.2562,-4)};
+  
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.55\textwidth}
+
+      Smooth algebraic projective curves of genus $1$ with a distinguished
+      point.
+
+      \begin{exampleblock}{Double nature}
+        Arithmetic-geometric objects.
+      \end{exampleblock}
+
+      \vspace{2em}
+      \pause
+
+      \begin{exampleblock}{Applications}
+        \begin{itemize}
+          \item Number theory
+          \pause
+          \item Cryptography (pre \& post-quantum)
+          \item Computer algebra (ECPP, ECM)
+        \end{itemize}
+      \end{exampleblock}
+
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Changing the rules}
+
+  \begin{exampleblock}{}
+
+    Let $E$ be an elliptic curve over $\Fq$. As an abelian group,
+    \[
+      E(\Fq) \simeq \ZZ/d_1\ZZ \times \cdots \times \ZZ/d_n \ZZ.
+    \]
+    So
+    \[
+      \# E(\Fq) = |d_1 \cdots d_n|.
+    \]
+
+  \end{exampleblock}
+
+  \vpause
+
+  Let $R$ be a PID, $M$ be a finite $R$-module.
+  There are $m_1, \dots, m_\ell \in R$ s.t.:
+  \[
+    M \simeq R/m_1 R \times \cdots \times R/m_\ell R.
+  \]
+
+  \pause
+
+  \begin{block}{$R$-cardinality}
+
+    Define the \emph{$R$-cardinality of $M$} as
+    \[
+      m_1 \cdots m_\ell.
+    \]
+
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Drinfeld modules!}
+
+  \begin{alertblock}{}
+    
+    Replace $\ZZ$ by $R = \Fq[T]$!
+
+  \end{alertblock}
+
+  \vpause
+
+  Both Euclidean domains.
+
+  \begin{block}{Analogies}
+  \begin{center}
+    \begin{tabular}{r|l} \hline
+      $\ZZ$
+      & $\Fq[T]$
+      \\ \hline
+      \hline
+
+      \pause
+
+      $\QQ$
+      & $\Fq(T)$
+      \\ \hline
+
+      \makecell[r]{Number fields \\ (finite extensions of $\QQ$)}
+      &
+      \makecell[l]{Function fields \\ (finite extensions of $\Fq(T)$)}
+      \\
+      \hline
+
+      \pause
+
+      $\RR$
+      & $\RR_\infty = \Fq((\frac 1 T))$
+      \\ \hline
+
+      $\CC$
+      & $\CC_\infty = $ completion of $\overline{\RR_\infty}$
+      \\ \hline
+      \hline
+
+      \pause
+
+      \textbf{Elliptic curves} & \textbf{Drinfeld modules}
+      \\ \hline
+    \end{tabular}
+  \end{center}
+  \end{block}
+
+  \vpause
+
+  \begin{alertblock}{Mantra}
+
+    Our integers are polynomials.
+
+  \end{alertblock}
+
+
+\end{frame}
+
+\section{A new area}
+
+\begin{frame}{From elliptic curves to Drinfeld modules}
+
+  \begin{center}
+    \begin{tabular}{r|l|l}
+       & Elliptic curves & Drinfeld modules \\
+      \hline
+      \hline
+      Introduction & 1850-1900 & 1977 \\
+      \hline
+      Practical applications & 1980s & \textcolor{c4}{2021}
+    \end{tabular}
+  \end{center}
+
+  \vpause
+
+  \begin{block}{}
+  
+    Drinfeld modules were introduced (and were successful) for:
+    \begin{itemize}
+
+      \item Class field theory (Kronecker-Weber, complex multiplication).
+
+      \item Langlands conjectures for function fields ($\mathrm{GL}_2$ then
+        $\mathrm{GL}_r$).
+
+    \end{itemize}
+
+  \end{block}
+
+  \vpause
+  
+  \begin{alertblock}{}
+  
+    Research on algorithmics of Drinfeld modules is a very new area!
+  
+  \end{alertblock}
+
+  \vpause 
+
+  \begin{block}{Our goal}
+
+    \begin{itemize}
+      
+      \item Modern techniques for manipulating Drinfeld modules.
+
+      \item Efficiency and generality (rank and function fields).
+    
+      \item Applications (coding theory, computer algebra).
+
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Timeline}
+
+  \begin{itemize}
+
+    \item Early works on computational aspects: \textcolor{c2}{1980s} (Gekeler,
+      Bae \& Koo, etc).
+
+    \item First thesis on the computational aspects: \textcolor{c3}{2018} (Caranay).
+
+    \item First computer algebra application: \textcolor{c4}{2021} (Doliskani,
+      Narayanan, Schost).
+
+    \item First high generality algorithms:
+      \textcolor{c5}{2023} (Musleh \& Schost, Caruso \& Leudière).
+
+  \end{itemize}
+
+  \vpause
+
+  \begin{block}{My research}
+
+    \begin{itemize}
+
+      \item Computer algebra of Drinfeld modules (Caruso-L. 2023, L. 2026).
+      \item SageMath implementation (Ayotte-Caruso-L.-Musleh 2023).
+      \item Algorithmics of function fields (L.-Spaenlehauer, 2023).
+      \item (Small cyclotomic integers (Bajpai, Das, Kedlaya, Le, L. Lee, Mello,
+        2025).)
+
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\section{Representing Drinfeld modules}
+
+\begin{frame}{Ore polynomials}
+
+  Fix $K/\Fq$, and for all $n \in \ZZ_{\geq 0}$:
+  \Function
+    {\tau^n}
+    {\Kbar}
+    {\Kbar}
+    {x}
+    {x^{q^n}.}
+
+  \begin{block}{Definition (Ore polynomials)}
+    
+    $\Ktau = $ finite $K$-linear combinations of $\tau^n$'. Ring for addition
+    and composition.
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Properties}
+
+    \begin{itemize}
+
+      \item Representation as polynomials: $\Ktau = \{\sum_{i=0}^n x_i \tau^i,
+        n\in \NN, x_i \in K\}$.
+
+      \pause
+
+      \item Notion of $\tau$-degree.
+
+      \pause
+
+      \item Noncommutative: for $\lambda \in K$, $\tau^n \lambda =
+        \lambda^{q^n} \tau^n$.
+
+      \pause
+
+      \item Left-euclidean: for any $A, B \in \Ktau$, there exist $Q, R \in
+        \Ktau$ such that:
+       \[
+           A = QB + R, \quad \deg_\tau(R) < \deg_\tau(B).
+       \]
+
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Representing Drinfeld modules}
+
+  \begin{block}{(Almost) Definition (Drinfeld, 1977)}
+
+    A \emph{Drinfeld $\Fq[T]$-module over $K$} is a homomorphism
+    of $\Fq$-algebras
+    \Function
+      {\phi}
+      {\Fq[T]}
+      {\Ktau}
+      {a}
+      {\phi_a.}
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Morphisms}
+  
+    A \emph{morphism} $u: \phi \to \psi$ is an Ore polynomial $u \in \Ktau$ such
+    that
+    \[
+      \forall a \in \Fq[T], \qquad u \phi_a = \psi_a u.
+    \]
+    An \emph{isogeny} is a nonzero morphism.
+  
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{The rank of a Drinfeld module}
+
+  \begin{block}{Definition (rank)}
+
+    $\phi$ is represented by $\phi_T$. The \emph{rank} of $\phi$ is
+    $\deg_\tau(\phi_T)$.
+
+  \end{block}
+
+  \vpause
+
+  \begin{alertblock}{}
+
+    Elliptic curves correspond to rank $2$ only! (Lattices in $\CC$ vs
+    $\CC_\infty$.)
+
+  \end{alertblock}
+
+  \vpause
+
+  \begin{block}{Point counting state of the art}
+
+  \begin{tabular}{rll}
+    
+    \textcolor{gray}{\textit{2008}} & Gekeler         & Frobenius, $r = 2$ generalized to $r \in \NN$ by Musleh \\
+    \textcolor{gray}{\textit{2019}} & Musleh, Schost  & Frobenius, $r = 2$  \\
+    \textcolor{gray}{\textit{2020}} & Garai, Papikian & Frobenius, $r = 2$  \\
+    \textcolor{gray}{\textit{2023}} & Musleh, Schost  & Any endomorphism, any $r$ \\
+    \textcolor{gray}{\textit{2023}} & \textbf{Caruso, L.}  & Any endomorphism,
+    any $r$, field, function field  \\
+    & & + isogeny norms \\
+
+  \end{tabular}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{The points of a Drinfeld module}
+
+  \begin{exampleblock}{}
+    For an elliptic curve, the \emph{points} form a $\ZZ$-module.
+  \end{exampleblock}
+  
+  \vpause
+
+  \begin{block}{Geometric points}
+
+    The \emph{$\Fq[T]$-module of points}, denoted by $\phi(\Kbar)$, is given
+    by:
+    \FunctionNoname
+      {\Fq[T] \times \Kbar}
+      {\Kbar}
+      {(a, z)}
+      {\phi_a(z).}
+
+  \end{block}
+
+  \pause
+
+  \begin{block}{$K$-rational points}
+
+    The \emph{$\Fq[T]$-module of $K$-rational points} is
+    \[
+      \phi(K) \coloneqq \phi(\Kbar) \cap K.
+    \]
+
+  \end{block}
+
+  \vpause
+
+  \begin{alertblock}{}
+    The underlying set of $\phi(K)$ is always $K$!
+  \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{The number of points}
+
+  \begin{exampleblock}{}
+
+    For an elliptic curve,
+    \[
+      E(\Fq) \simeq \ZZ/(d_1) \times \cdots \times \ZZ/(d_n),
+    \]
+    and
+    \[
+      (\# E(\Fq)) \simeq (d_1 \cdots d_n)
+    \]
+
+  \end{exampleblock}
+
+  \vpause
+
+  \begin{block}{}
+
+    Assume $K$ is finite. Decompose
+    \[
+      \phi(K) \simeq \Fq[T]/(d_1) \times \cdots \times \Fq[T]/(d_n).
+    \]
+    The ``number of $K$-rational points of $\phi$'' ($\Fq[T]$-cardinality) is
+    \[
+      (|\phi(K)|) = (d_1 \cdots d_n).
+    \]
+
+  \end{block}
+
+  Often referred to as the \emph{Euler-Poincaré characteristic} or
+  \emph{Fitting ideal} of $\phi(K)$.
+
+\end{frame}
+
+\section{Point counting without points}
+
+\begin{frame}{The elliptic curve case}
+
+  First deterministic polynomial time: Schoof, 1985.
+
+  \pause
+
+  \begin{exampleblock}{Number of points \emph{via} the Frobenius endomorphism}
+
+    \begin{enumerate}
+
+      \item An elliptic curve $E/\Fq$ has a \emph{Frobenius endomorphism} $F:
+        (x, y) \mapsto (x^q, y^q)$.
+
+      \pause
+
+      \item $F$ has a \emph{characteristic polynomial}
+        \[
+          \chi = X^2 - tX + q \in \ZZ[X]
+        \]
+        such that
+        \[
+          \chi(F) = F^2 - tF + q = 0.
+        \]
+
+      \pause
+
+      \item We have
+        \[
+          |E(\Fq)| = \chi(1).
+        \]
+
+    \end{enumerate}
+
+    \vpause
+  
+  \end{exampleblock}
+
+  Important invariant.
+
+\end{frame}
+
+\begin{frame}{The Drinfeld module case}
+
+  \begin{block}{}
+  \begin{enumerate}
+
+    \item Assume $K$ is finite. A Drinfeld module $\phi$ over $K$ has a
+      \emph{Frobenius endomorphism} $F = \tau^{[K: \Fq]} \in \Ktau$.
+
+    \pause
+
+    \item $F$ has a \emph{characteristic polynomial}
+    \[
+      \chi = X^r + a_{r-1}(T) X^{r-1} + \cdots + a_1(T)X + a_0(T) \in \Fq[T][X]
+    \]
+    such that
+    \[
+      \chi(F) = F^r + \phi_{a_{r-1}} F^{r-1} + \cdots +
+      \phi_{a_1} F + \phi_{a_0} = 0.
+    \]
+
+    \pause
+
+    \item We have (Gekeler, 1991)
+    \[
+      (|\phi(K)|) = (\chi(1))
+    \]
+
+  \end{enumerate}
+
+  \end{block}
+
+    \vpause
+
+  Important invariant.
+
+\end{frame}
+
+\begin{frame}{Abstract definition of $\chi$}
+
+  \begin{block}{Via \emph{Tate modules}}
+  \begin{enumerate}
+        
+    \item Make $\Fq[T]$ act on $\Kbar$ \emph{via} $\phi$.
+
+    \item Consider the action of $F$ on (almost all) the $\ell$-torsion
+      submodules, $\ell \in \Fq[T]$.
+
+    \item Show that these are free with rank $r$ on  $\Fq[T]/(\ell)$.
+
+    \item Show that the characteristic polynomial of the action of $F$ on
+      these modules lifts to a single polynomial $\chi \in \Fq[T][X]$.
+
+  \end{enumerate}
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Problem}
+
+    \begin{itemize}
+      \item Manipulate torsion elements in possibly large extensions.
+      \item Or derive an efficient theory of \emph{division polynomials}.
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Anderson motives}
+
+  \begin{block}{Definition (Anderson motive of $\phi$)}
+
+    $\M(\phi)$ is the $K[T]$-module
+    \FunctionNoname
+      {K[T] \times \Ktau}
+      {\Ktau}
+      {\left(\sum_i \lambda_i T^i, f(\tau)\right)}
+      {\sum_i \lambda_i f(\tau) \phi_T^i}
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Canonical basis}
+    $\mathbb M(\phi)$ is free with rank $r$ (the rank of $\phi$) with basis
+    \[(1, \tau, \dots, \tau^{r-1}).\]
+  \end{block}
+
+  \vpause
+
+  \begin{alertblock}{Explicit decomposition in the canonical basis}
+    Ore Euclidean division and recursion:
+    \[
+      f(\tau) = Q(\tau) \phi_T + R(\tau), \quad \deg_\tau(R) < r =
+      \deg_\tau(\phi_T).
+    \]
+  \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{Morphisms as matrices}
+
+  \begin{block}{}
+
+    Any morphisms $u: \phi \to \psi$ gives a morphism on the Anderson motives
+    \Function
+      {\M(u)}
+      {\M(\psi)}
+      {\M(\phi)}
+      {f}
+      {fu.}
+
+  \end{block}
+
+  \vpause
+
+  \begin{alertblock}{Effective computation}
+    To compute the matrix of $\M(u)$, compute the coordinates of
+    \[
+      u, \tau u, \cdots, \tau^{r-1} u.
+    \]
+  \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{Norms and characteristic polynomials}
+
+  Let $u: \phi \to \psi$ be an isogeny of Drinfeld modules.
+
+  Consider $\M(u):\M(\psi)\to\M(\phi)$ as a matrix in the canonical bases.
+
+  \begin{block}{}
+
+    \begin{itemize}
+
+    \item If $u$ is an endomorphism, its characteristic polynomial is that of
+    $\M(u)$.
+
+    \item The \emph{norm} of $u$ is $\det(\M(u))$.
+    \end{itemize}
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Our work}
+
+    \begin{itemize}
+    
+      \item Prove it (for any function ring, field, rank, isogeny).
+
+      \item Multiple variants, optimization, analysis.
+
+      \item Implementation.
+
+      \item (An extra algorithm, only for the Frobenius, based on reduced
+        norms.)
+
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{}
+
+  % Thank you Xavier Caruso for this plot!
+
+  \def\cA{(0.3805, 0.761)}
+  \def\cB{(0.3805, 0)}
+  \def\cC{(0.4308, 1)}
+  \def\ph{\vphantom{$A^A_A$}}
+  
+  \centering
+  \hfill%
+  \begin{tikzpicture}[scale=6.6]
+  \fill[pattern=north east lines] (0,1) rectangle (1.43,1.08);
+  \fill[comparegreen] (0,0)--\cA--\cC--(0,1);        % musleh-schost
+  \fill[comparered] (0,0)--\cA--\cB;                 % F-MKU
+  \fill[compareyellow] \cB--\cA--\cC--(1,1)--(1,0);  % F-MFF
+  \fill[compareblue] (1,0) rectangle (1.43,1);       % F-CSA
+  \begin{scope}[thick]
+  \draw[-latex] (0,0)--(1.45,0);
+  \draw[-latex] (0,0)--(0,1.13);
+  \draw (0,1)--(1.43,1);
+  \draw (0,0)--\cA--\cC;
+  \draw \cA--\cB;
+  \draw (1,0)--(1,1);
+  \end{scope}
+  \node[scale=0.8] at (1.47,-0.04) { $\frac{\log r}{\log d}$ };
+  \node[scale=0.8] at (-0.035, 1.15) { $\frac{\log m}{\log d}$ };
+  \draw[dotted] \cA--(0, 0.761);
+  \draw[dotted] \cC--(0.4308, 0);
+  \node[scale=0.8] at (-0.01,-0.02) { $0$ };
+  \node[scale=0.8] at (-0.02,1) { $1$ };
+  \node[scale=0.8] at (1,-0.03) { $1$ };
+  \node[scale=0.8] at (0.37,-0.04) { \hspace{-0.6cm} $\frac 1{5-\omega}$ };
+  \node[scale=0.8] at (-0.04, 0.761) { $\frac 2{5-\omega}$ };
+  \node[scale=0.8] at (0.46,-0.04) { \hspace{0.2cm} $\frac {\omega+3\hspace{3mm}}{10\omega - 2 \omega^2}$ };
+  \node at (0.17,0.7) { \ph \scriptsize Musleh-Schost };
+  \node at (0.26,0.25) { \ph \scriptsize \FMKU };
+  \node at (0.68,0.5) { \ph \scriptsize \FMFF };
+  \node at (1.22,0.5) { \ph \scriptsize \FCSA };
+  \end{tikzpicture}%
+  \hfill\null
+
+\end{frame}
+
+\begin{frame}{Conclusion}
+
+  \begin{block}{}
+  Problems inspired from elliptic curves.
+
+  New solutions (efficiency, generality).
+
+  \end{block}
+
+  \vpause
+
+  \begin{block}{Potential of Drinfeld modules}
+    
+    \begin{itemize}
+
+      \item Reveal differences between number fields and function fields.
+
+      \item Computer algebra of polynomials.
+
+      \item Coding theory:
+        \begin{itemize}
+          \item Drinfeld modular curve (asymptotically good towers of
+            curves).
+          \item Function Field Decoding Problem (Bombar,
+            Couvreur \& Debris-Alazard).
+          \item Rank-metric, locally recoverable codes (Bastioni, Darwish \&
+            Micheli).
+        \end{itemize}
+
+    \end{itemize}
+
+  \end{block}
+
+\end{frame}
+
+\end{document}
