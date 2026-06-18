@@ -32,7 +32,7 @@
 
 \setbeamertemplate{frametitle}[default][center]
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamerfont{frametitle}{size=\LARGE}
+\setbeamerfont{frametitle}{size=\Large}
 \setbeamercolor{frametitle}{fg=black}
 \setbeamerfont{frametitle}{shape=\bf}
 
